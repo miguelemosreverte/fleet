@@ -127,6 +127,31 @@ func TestTranslate(t *testing.T) {
 			matched: false,
 			want:    CPETranslation{},
 		},
+		{
+			name: "match Microsoft.WindowsNotepad",
+			translations: CPETranslations{
+				{
+					Software: CPETranslationSoftware{
+						Name:   []string{"Microsoft.WindowsNotepad"},
+						Source: []string{"programs"},
+					},
+					Filter: CPETranslation{
+						Product: []string{"window_notepad", "windows_notepad"},
+						Vendor:  []string{"microsoft"},
+					},
+				},
+			},
+			software: fleet.Software{
+				Name:   "Microsoft.WindowsNotepad",
+				Source: "programs",
+				Vendor: "Microsoft Corporation",
+			},
+			matched: true,
+			want: CPETranslation{
+				Product: []string{"window_notepad", "windows_notepad"},
+				Vendor:  []string{"microsoft"},
+			},
+		},
 	}
 
 	for _, tt := range tests {

@@ -748,5 +748,15 @@
     "filter": {
       "product": ["acrobat_reader_dc"]
     }
+  },
+  {
+    "software": {
+      "name": ["Microsoft.WindowsNotepad"],
+      "source": ["programs"]
+    },
+    "filter": {
+      "product": ["window_notepad", "windows_notepad"],
+      "vendor": ["microsoft"]
+    }
   }
 ]
