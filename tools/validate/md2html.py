@@ -16,6 +16,7 @@ def md_to_html(md: str) -> str:
     in_code = False
     in_table = False
     in_ul = False
+    in_ol = False
     in_details = False
     code_lang = ""
 
@@ -49,6 +50,9 @@ def md_to_html(md: str) -> str:
             if in_ul:
                 out.append("</ul>")
                 in_ul = False
+            if in_ol:
+                out.append("</ol>")
+                in_ol = False
             out.append("")
             i += 1
             continue
@@ -115,17 +119,10 @@ def md_to_html(md: str) -> str:
             if in_table:
                 out.append("</tbody></table>")
                 in_table = False
-            # Collect all consecutive OL items
-            if not in_ul:
+            if not in_ol:
                 out.append("<ol>")
-            # Handle continuation lines (indented under list item)
-            item_text = m.group(2)
-            while i + 1 < len(lines) and lines[i + 1].startswith("   ") and not re.match(r"^\d+\.\s+", lines[i + 1]):
-                i += 1
-                item_text += " " + lines[i].strip()
-            out.append(f"<li>{inline(item_text)}</li>")
-            if i + 1 >= len(lines) or not re.match(r"^\d+\.\s+", lines[i + 1]):
-                out.append("</ol>")
+                in_ol = True
+            out.append(f"<li>{inline(m.group(2))}</li>")
             i += 1
             continue
 
@@ -153,6 +150,8 @@ def md_to_html(md: str) -> str:
         out.append("</tbody></table>")
     if in_ul:
         out.append("</ul>")
+    if in_ol:
+        out.append("</ol>")
 
     return "\n".join(out)
 

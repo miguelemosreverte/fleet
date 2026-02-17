@@ -73,11 +73,8 @@ strong { font-weight: 600; }
 
 <ol>
 <li><a href="#39613--browser-tab-title-shows-software-on-host-software-page">#39613 — Browser tab title shows "Software" on host software page</a></li>
-<ol>
 <li><a href="#39745--add-cpe-translation-for-microsoftwindowsnotepad">#39745 — Add CPE translation for Microsoft.WindowsNotepad</a></li>
-<ol>
 <li><a href="#39245--serialize-self-service-install-requests">#39245 — Serialize self-service install requests</a></li>
-<ol>
 <li><a href="#39921--scope-declaration-processing-to-affected-hosts">#39921 — Scope declaration processing to affected hosts</a></li>
 </ol>
 
@@ -401,11 +398,25 @@ Tests: 12 passed, 12 total
 <h4 id="changes">Changes</h4>
 
 <ol>
-<li><strong><code>server/datastore/mysql/mdm.go</code></strong>: - Collect declaration UUIDs from profile UUIDs passed to the function. - Add a new <code>case hasAppleDecls:</code> block that looks up host UUIDs associated with the changed declarations (via team membership and existing assignments). - Remove the <code>!hasAppleDecls</code> guard so the host UUID lookup runs for declarations just like it does for profiles. - Pass the scoped <code>appleHosts</code> list into <code>mdmAppleBatchSetHostDeclarationStateDB</code>.</li>
+<li><strong><code>server/datastore/mysql/mdm.go</code></strong>:</li>
+<p>   - Collect declaration UUIDs from profile UUIDs passed to the function.</p>
+<p>   - Add a new <code>case hasAppleDecls:</code> block that looks up host UUIDs associated</p>
+<p>     with the changed declarations (via team membership and existing assignments).</p>
+<p>   - Remove the <code>!hasAppleDecls</code> guard so the host UUID lookup runs for</p>
+<p>     declarations just like it does for profiles.</p>
+<p>   - Pass the scoped <code>appleHosts</code> list into <code>mdmAppleBatchSetHostDeclarationStateDB</code>.</p>
 </ol>
 
 <ol>
-<li><strong><code>server/datastore/mysql/apple_mdm.go</code></strong>: - Add <code>hostUUIDs []string</code> parameter to <code>mdmAppleBatchSetHostDeclarationStateDB</code>. - Add <code>hostUUIDs []string</code> parameter to <code>mdmAppleGetHostsWithChangedDeclarationsDB</code>. - When <code>hostUUIDs</code> is non-empty, use batched host-filtered queries (<code>generateEntitiesToInstallQueryWithDesiredState</code> and <code>generateEntitiesToRemoveQueryWithDesiredState</code>) that include <code>h.uuid IN (?)</code> conditions, avoiding a full table scan. - When <code>hostUUIDs</code> is empty (cron path), fall through to the original <code>mdmAppleGetAllHostsWithChangedDeclarationsDB</code> that processes all hosts.</li>
+<li><strong><code>server/datastore/mysql/apple_mdm.go</code></strong>:</li>
+<p>   - Add <code>hostUUIDs []string</code> parameter to <code>mdmAppleBatchSetHostDeclarationStateDB</code>.</p>
+<p>   - Add <code>hostUUIDs []string</code> parameter to <code>mdmAppleGetHostsWithChangedDeclarationsDB</code>.</p>
+<p>   - When <code>hostUUIDs</code> is non-empty, use batched host-filtered queries</p>
+<p>     (<code>generateEntitiesToInstallQueryWithDesiredState</code> and</p>
+<p>     <code>generateEntitiesToRemoveQueryWithDesiredState</code>) that include</p>
+<p>     <code>h.uuid IN (?)</code> conditions, avoiding a full table scan.</p>
+<p>   - When <code>hostUUIDs</code> is empty (cron path), fall through to the original</p>
+<p>     <code>mdmAppleGetAllHostsWithChangedDeclarationsDB</code> that processes all hosts.</p>
 </ol>
 
 <h3 id="test-results">Test Results</h3>
