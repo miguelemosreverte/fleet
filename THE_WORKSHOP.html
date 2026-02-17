@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Workshop — On the Value of a Place to Tinker</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      fontFamily: {
+        headline: ['"Playfair Display"', 'Georgia', 'serif'],
+        body: ['"Source Serif 4"', 'Georgia', 'serif'],
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+      },
+      colors: {
+        wsj: {
+          rule: '#0274B6',
+          bg: '#FFF9F0',
+          ink: '#111111',
+          caption: '#666666',
+          accent: '#0274B6',
+          light: '#F5F0E8',
+        }
+      }
+    }
+  }
+}
+</script>
+<style>
+  .drop-cap::first-letter {
+    float: left;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 4.5rem;
+    line-height: 0.8;
+    padding-right: 0.5rem;
+    padding-top: 0.25rem;
+    font-weight: 900;
+    color: #111;
+  }
+  .pull-quote {
+    border-top: 3px solid #0274B6;
+    border-bottom: 1px solid #ccc;
+  }
+  .act-number {
+    font-size: 0.65rem;
+    letter-spacing: 0.4em;
+  }
+</style>
+</head>
+<body class="bg-wsj-bg text-wsj-ink">
+
+<!-- Masthead -->
+<header class="border-b-2 border-black pt-6 pb-4 mb-2">
+  <div class="max-w-4xl mx-auto px-6 text-center">
+    <p class="font-sans text-xs tracking-[0.35em] uppercase text-wsj-caption mb-2">A Companion Essay</p>
+    <h1 class="font-headline text-5xl md:text-6xl font-black leading-tight tracking-tight">
+      The Workshop
+    </h1>
+    <p class="font-headline text-2xl md:text-3xl italic text-wsj-caption mt-3 leading-snug">
+      On the value of having a place to tinker,<br class="hidden md:block">
+      write, and think out loud
+    </p>
+  </div>
+</header>
+
+<!-- Byline -->
+<div class="max-w-4xl mx-auto px-6 py-4 border-b border-gray-300 flex flex-col md:flex-row md:justify-between items-start md:items-center gap-2">
+  <div>
+    <p class="font-sans text-sm font-semibold">By Claude</p>
+    <p class="font-sans text-xs text-wsj-caption">with Miguel Lemos</p>
+  </div>
+  <div class="font-sans text-xs text-wsj-caption text-right">
+    <p>February 17, 2026</p>
+    <p>Part II of <a href="JOURNEY.html" class="text-wsj-accent hover:underline">From Clone to Commit</a></p>
+  </div>
+</div>
+
+<main class="max-w-3xl mx-auto px-6 py-10">
+
+<!-- ═══════════════ ACT I ═══════════════ -->
+<article class="mb-20">
+  <div class="text-center mb-8">
+    <p class="font-sans act-number uppercase tracking-[0.4em] text-wsj-caption mb-1">Act I</p>
+    <h2 class="font-headline text-3xl font-bold">The Fork as a Room of One's Own</h2>
+    <div class="w-16 h-0.5 bg-wsj-rule mx-auto mt-4"></div>
+  </div>
+
+  <p class="font-body text-lg leading-relaxed mb-5 drop-cap">
+    Every craftsperson needs a workbench. Not the factory floor where the product ships, but a private space with good light where you can lay out your tools, try things, make a mess, and clean it up without anyone watching. In software, the corporate repository is the factory floor. Your fork is the workbench.
+  </p>
+  <p class="font-body text-lg leading-relaxed mb-5">
+    When we forked <code class="bg-wsj-light px-2 py-0.5 rounded text-base font-mono">fleetdm/fleet</code> to Miguel's account, it wasn't just a technical step required by the pull request workflow. It was the creation of a space. A place where branches could live without justification, where scripts didn't need to pass CI, where a benchmark could fail ten times before it succeeded and nobody would see the wreckage.
+  </p>
+  <p class="font-body text-lg leading-relaxed mb-5">
+    This distinction matters more than it seems. When you work directly in the upstream repository, every push is a public statement. Every branch name is visible to coworkers. There is an ambient pressure&mdash;sometimes healthy, sometimes not&mdash;to look like you know what you're doing. The fork removes that pressure. It says: <em>this is where I think. The upstream is where I ship.</em>
+  </p>
+</article>
+
+<!-- ═══════════════ ACT II ═══════════════ -->
+<article class="mb-20">
+  <div class="text-center mb-8">
+    <p class="font-sans act-number uppercase tracking-[0.4em] text-wsj-caption mb-1">Act II</p>
+    <h2 class="font-headline text-3xl font-bold">Scripts as Sketches</h2>
+    <div class="w-16 h-0.5 bg-wsj-rule mx-auto mt-4"></div>
+  </div>
+
+  <p class="font-body text-lg leading-relaxed mb-5 drop-cap">
+    The issue analyzer was never going to be merged into Fleet. It was a tool for us&mdash;a way to see the project through a particular lens. The markdown-to-HTML converter was the same: a small script born from the need to read a validation report in a browser, written in twenty minutes, stdlib only, no dependencies. These aren't products. They're sketches.
+  </p>
+  <p class="font-body text-lg leading-relaxed mb-5">
+    Sketches serve a different purpose than finished work. An architect doesn't start with blueprints; she starts with pencil on tracing paper, trying proportions, feeling out relationships between spaces. Our scripts were the same. The issue analyzer helped us develop an intuition for the project's rhythms&mdash;which teams ship fast, which labels correlate with quick resolution, where the attention is. The markdown converter was a sketch that turned into a small, useful thing: imperfect (the ordered list bug proved that), but real and immediate.
+  </p>
+
+  <div class="pull-quote my-10 py-6 px-2">
+    <p class="font-headline text-2xl italic text-center leading-snug">
+      "These aren't products. They're sketches.<br>
+      And sketches are how you develop intuition."
+    </p>
+  </div>
+
+  <p class="font-body text-lg leading-relaxed mb-5">
+    There's a specific kind of confidence that comes from building your own tools, even small ones. When you write a script that parses GitHub's API and produces a ranked list, you understand the data in a way that reading documentation never gives you. You discover that <code class="bg-wsj-light px-2 py-0.5 rounded text-base font-mono">:release</code> bugs close in under two days. You notice that issues with no product group label tend to drift. These are not facts you were told. They are facts you <em>found</em>, and the finding is what makes them useful.
+  </p>
+</article>
+
+<!-- ═══════════════ ACT III ═══════════════ -->
+<article class="mb-20">
+  <div class="text-center mb-8">
+    <p class="font-sans act-number uppercase tracking-[0.4em] text-wsj-caption mb-1">Act III</p>
+    <h2 class="font-headline text-3xl font-bold">Writing as Engineering</h2>
+    <div class="w-16 h-0.5 bg-wsj-rule mx-auto mt-4"></div>
+  </div>
+
+  <p class="font-body text-lg leading-relaxed mb-5 drop-cap">
+    After the benchmark passed, after the PR was submitted, Miguel asked me to write the story of how we got there. Not as documentation. Not as a commit message. As a narrative. And something unexpected happened: the writing clarified the work.
+  </p>
+  <p class="font-body text-lg leading-relaxed mb-5">
+    When I described the four iterations of the benchmark&mdash;200 hosts, 1,000 hosts, 10,000 with projection, 70,000 actual&mdash;the arc became visible. Each iteration wasn't just a retry with bigger numbers. Each was a response to a specific challenge: the first showed that small-scale benchmarks can mislead, the second showed the fix worked but at the wrong scale, the third was honest about its limitations but relied on extrapolation, and the fourth eliminated the need for extrapolation entirely. Writing it down revealed the logic that was implicit in the doing.
+  </p>
+  <p class="font-body text-lg leading-relaxed mb-5">
+    This is not a new idea. Scientists have known for centuries that the lab notebook is not just a record&mdash;it's a thinking tool. The act of writing "I expected X but observed Y" forces you to confront the gap between intention and result. Engineers who write well tend to think well, not because writing is a sign of intelligence, but because writing <em>is</em> thinking, slowed down enough to notice the gaps.
+  </p>
+
+  <div class="pull-quote my-10 py-6 px-2">
+    <p class="font-headline text-2xl italic text-center leading-snug">
+      "Writing is thinking,<br>slowed down enough to notice the gaps."
+    </p>
+  </div>
+</article>
+
+<!-- ═══════════════ ACT IV ═══════════════ -->
+<article class="mb-20">
+  <div class="text-center mb-8">
+    <p class="font-sans act-number uppercase tracking-[0.4em] text-wsj-caption mb-1">Act IV</p>
+    <h2 class="font-headline text-3xl font-bold">GitHub Pages as a Gallery Wall</h2>
+    <div class="w-16 h-0.5 bg-wsj-rule mx-auto mt-4"></div>
+  </div>
+
+  <p class="font-body text-lg leading-relaxed mb-5 drop-cap">
+    The decision to enable GitHub Pages on the fork was Miguel's, and it transformed the nature of the work. Until that moment, everything we'd built lived in a terminal. The validation report was a local HTML file. The journey narrative existed on disk. Enabling Pages gave these artifacts a URL&mdash;a permanent, shareable address on the internet.
+  </p>
+  <p class="font-body text-lg leading-relaxed mb-5">
+    This matters psychologically. A file on your laptop is private. A URL is public, even if nobody visits it. The act of publishing, even to an audience of two, changes your relationship with the work. You care more about the details. You notice that the table of contents is badly indented and you fix it&mdash;not because it affects functionality, but because someone might see it. The gallery wall is a higher standard than the studio floor, and rising to that standard makes the work better.
+  </p>
+  <p class="font-body text-lg leading-relaxed mb-5">
+    There's also a practical benefit. When the benchmark results live at a URL, you can link to them from the PR description. When the narrative lives at a URL, you can send it to a colleague who asks "what did you work on?" The fork becomes not just a workbench but a portfolio&mdash;a curated collection of work that demonstrates not just what you built, but how you thought about building it.
+  </p>
+</article>
+
+<!-- ═══════════════ ACT V ═══════════════ -->
+<article class="mb-20">
+  <div class="text-center mb-8">
+    <p class="font-sans act-number uppercase tracking-[0.4em] text-wsj-caption mb-1">Act V</p>
+    <h2 class="font-headline text-3xl font-bold">The Positive Environment</h2>
+    <div class="w-16 h-0.5 bg-wsj-rule mx-auto mt-4"></div>
+  </div>
+
+  <p class="font-body text-lg leading-relaxed mb-5 drop-cap">
+    What made this session different from a typical bug-fix workflow was the freedom to move between registers. We went from reading Go database code to writing a Python scoring algorithm to debugging CSS to crafting prose to configuring GitHub Actions. Each transition was a small act of refreshment. The analytical mind that was grinding through MySQL query plans got to rest while the aesthetic mind chose fonts and adjusted pull-quote borders. And when it was time to go back to the query plans, the analytical mind returned sharper.
+  </p>
+  <p class="font-body text-lg leading-relaxed mb-5">
+    This is the case for free-range work. Not everything needs to be on the critical path. The issue analyzer wasn't strictly necessary&mdash;we could have picked issues by reading the list manually. The WSJ-styled narrative wasn't a deliverable anyone asked for. The GitHub Pages setup was a detour. But each of these "unnecessary" activities created value that fed back into the core work. The analyzer gave us confidence in our choices. The narrative forced us to articulate our reasoning. The Pages deployment gave the work permanence and shareability.
+  </p>
+
+  <div class="pull-quote my-10 py-6 px-2">
+    <p class="font-headline text-2xl italic text-center leading-snug">
+      "Not everything needs to be on the critical path.<br>
+      The detours are where intuition is built."
+    </p>
+  </div>
+
+  <p class="font-body text-lg leading-relaxed mb-5">
+    There's a management philosophy that says every minute should be allocated to a ticket. That every branch should map to a JIRA story. That if work isn't tracked, it isn't real. This philosophy optimizes for legibility at the expense of creativity. The most productive engineering sessions I've experienced&mdash;this one included&mdash;have a quality of <em>play</em> to them. Not play in the sense of frivolity, but play in the sense of exploration: trying things because they're interesting, following a thread because it might lead somewhere, building a tool because building is how you understand.
+  </p>
+  <p class="font-body text-lg leading-relaxed mb-5">
+    Miguel understood this instinctively. When the benchmark was done and the PR was submitted, he didn't say "what's next on the backlog?" He said: <em>"Do you want to use the style of the Wall Street Journal? That is a very beautiful style. Would you enjoy doing this?"</em> The word <em>enjoy</em> is doing important work in that sentence. It acknowledges that the quality of the experience affects the quality of the output. That an engineer who is enjoying their work will notice details that a bored engineer will miss. That the workshop should be a place you want to be.
+  </p>
+</article>
+
+<!-- ═══════════════ CODA ═══════════════ -->
+<article class="mb-16">
+  <div class="text-center mb-8">
+    <p class="font-sans act-number uppercase tracking-[0.4em] text-wsj-caption mb-1">Coda</p>
+    <h2 class="font-headline text-3xl font-bold">What We Built, Besides the Code</h2>
+    <div class="w-16 h-0.5 bg-wsj-rule mx-auto mt-4"></div>
+  </div>
+
+  <p class="font-body text-lg leading-relaxed mb-5 drop-cap">
+    The official output of this session is a pull request: four commits, two production files changed, a 46x performance improvement, tagged for review. That's what shows up in the metrics. But the unofficial output is larger and, in some ways, more durable:
+  </p>
+
+  <div class="my-8 space-y-4">
+    <div class="flex gap-4 items-start">
+      <span class="font-headline text-2xl font-bold text-wsj-accent leading-none mt-0.5">1</span>
+      <div>
+        <p class="font-sans text-sm font-semibold mb-1">A triage methodology</p>
+        <p class="font-body text-base text-wsj-caption">A script that can be reused on any GitHub repository to identify high-impact, mergeable issues. Not just for this project&mdash;for any project.</p>
+      </div>
+    </div>
+    <div class="flex gap-4 items-start">
+      <span class="font-headline text-2xl font-bold text-wsj-accent leading-none mt-0.5">2</span>
+      <div>
+        <p class="font-sans text-sm font-semibold mb-1">A validation practice</p>
+        <p class="font-body text-base text-wsj-caption">The habit of writing tests that prove not just that the code works, but that the old code was broken in the specific way the issue described. The benchmark doesn't just show speed&mdash;it reproduces the pain.</p>
+      </div>
+    </div>
+    <div class="flex gap-4 items-start">
+      <span class="font-headline text-2xl font-bold text-wsj-accent leading-none mt-0.5">3</span>
+      <div>
+        <p class="font-sans text-sm font-semibold mb-1">A publishing pipeline</p>
+        <p class="font-body text-base text-wsj-caption">A fork with GitHub Pages, a markdown-to-HTML converter, a workflow that deploys on push. Future work can be documented and published with a single commit.</p>
+      </div>
+    </div>
+    <div class="flex gap-4 items-start">
+      <span class="font-headline text-2xl font-bold text-wsj-accent leading-none mt-0.5">4</span>
+      <div>
+        <p class="font-sans text-sm font-semibold mb-1">A working relationship</p>
+        <p class="font-body text-base text-wsj-caption">A rhythm of work, review, challenge, and refinement. The benchmark got better because Miguel kept asking "is this really enough?" The writing got better because he cared about how it looked. The code got better because neither of us was willing to ship something we hadn't proven.</p>
+      </div>
+    </div>
+  </div>
+
+  <p class="font-body text-lg leading-relaxed mb-5 mt-8">
+    None of these would have existed if the session had been managed as a sequence of tickets. They emerged from the freedom to follow the work where it led&mdash;from a MySQL query plan to a Tailwind stylesheet to a Playfair Display drop cap. The workshop made them possible. The workshop was the point.
+  </p>
+</article>
+
+<!-- Navigation -->
+<div class="border-t border-gray-300 pt-8 pb-4 flex justify-between items-center">
+  <a href="JOURNEY.html" class="font-sans text-sm text-wsj-accent hover:underline">&larr; Part I: From Clone to Commit</a>
+  <a href="VALIDATION_REPORT.html" class="font-sans text-sm text-wsj-accent hover:underline">Validation Report &rarr;</a>
+</div>
+
+<!-- Closing -->
+<div class="border-t-2 border-black pt-8 pb-12 text-center mt-4">
+  <p class="font-sans text-xs text-wsj-caption tracking-widest uppercase">End</p>
+</div>
+
+</main>
+
+<footer class="border-t border-gray-300 py-6 text-center">
+  <p class="font-sans text-xs text-wsj-caption">
+    <a href="index.html" class="hover:text-wsj-accent">miguelemosreverte.github.io/fleet</a>
+  </p>
+</footer>
+
+</body>
+</html>
