@@ -149,7 +149,7 @@ const SoftwareSelfService = ({
   const isMountedRef = useRef(false);
   /** Stores software IDs for which the user has initiated an action (install/uninstall) */
   const userActionIdsRef = useRef<Set<number>>(new Set());
-  /** Stores timeout handles for each “recently updated” status for proper clear/removal on unmount */
+  /** Stores timeout handles for each "recently updated" status for proper clear/removal on unmount */
   const recentlyUpdatedTimeouts = useRef<{ [key: number]: NodeJS.Timeout }>({});
   /** Stores the set of pending install/uninstall software IDs for polling */
   const pendingSoftwareIdsRef = useRef<Set<string>>(new Set());
@@ -157,6 +157,11 @@ const SoftwareSelfService = ({
   const pollingTimeoutIdRef = useRef<NodeJS.Timeout | null>(null);
   /** Detects parent/host polling completion status to trigger self-update sync */
   const isAwaitingHostDetailsPolling = useRef(isHostDetailsPolling);
+  /** Queue for serializing install requests to avoid VPP API contention */
+  const installQueueRef = useRef<
+    Array<{ softwareId: number; isScriptPackage: boolean }>
+  >([]);
+  const isProcessingInstallRef = useRef(false);
 
   const [selfServiceData, setSelfServiceData] = useState<
     IGetDeviceSoftwareResponse | undefined
@@ -209,6 +214,8 @@ const SoftwareSelfService = ({
       }
       // Reset pending IDs
       pendingSoftwareIdsRef.current = new Set();
+      // Clear install queue
+      installQueueRef.current = [];
     };
   }, []);
 
@@ -433,23 +440,43 @@ const SoftwareSelfService = ({
     refetchForPendingInstallsOrUninstalls();
   }, [refetchForPendingInstallsOrUninstalls]);
 
-  const onClickInstallAction = useCallback(
-    async (softwareId: number, isScriptPackage = false) => {
+  // Processes install requests one at a time to avoid VPP API contention
+  // that causes false "host offline" errors on rapid taps (iOS/iPadOS).
+  const processInstallQueue = useCallback(async () => {
+    if (isProcessingInstallRef.current) return;
+    isProcessingInstallRef.current = true;
+
+    while (installQueueRef.current.length > 0) {
+      const { softwareId, isScriptPackage } = installQueueRef.current.shift()!;
       try {
         await deviceApi.installSelfServiceSoftware(deviceToken, softwareId);
         if (isMountedRef.current) {
-          onInstallOrUninstall();
           registerUserSoftwareAction(softwareId);
         }
       } catch (error) {
-        // We only show toast message if API returns an error
-        renderFlash(
-          "error",
-          `Couldn't ${isScriptPackage ? "run" : "install"}. Please try again.`
-        );
+        if (isMountedRef.current) {
+          renderFlash(
+            "error",
+            `Couldn't ${isScriptPackage ? "run" : "install"}. Please try again.`
+          );
+        }
       }
+    }
+
+    isProcessingInstallRef.current = false;
+
+    // Trigger a single polling refetch after all queued installs are dispatched
+    if (isMountedRef.current) {
+      onInstallOrUninstall();
+    }
+  }, [deviceToken, onInstallOrUninstall, registerUserSoftwareAction, renderFlash]);
+
+  const onClickInstallAction = useCallback(
+    (softwareId: number, isScriptPackage = false) => {
+      installQueueRef.current.push({ softwareId, isScriptPackage });
+      processInstallQueue();
     },
-    [deviceToken, onInstallOrUninstall, registerUserSoftwareAction, renderFlash]
+    [processInstallQueue]
   );
 
   const onClickUninstallAction = useCallback(
