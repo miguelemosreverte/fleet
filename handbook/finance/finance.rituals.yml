@@ -94,7 +94,7 @@
   description: "Provide updated metrics for CRV in Chronograph."
   moreInfoUrl: "https://fleetdm.com/handbook/finance#report-quarterly-numbers-in-chronograph"
   dri: "rfoo2015"
-- task: "Quartlery finance check"
+- task: "Quarterly finance check"
   startedOn: "2024-03-31"
   frequency: "Quarterly"
   description: "Every quarter, we check Quickbooks Online (QBO) for discrepancies and follow up with accounting providers for any quirks found."
