@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fleet Validation Report</title>
+<style>
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  max-width: 960px;
+  margin: 40px auto;
+  padding: 0 20px;
+  color: #1f2328;
+  line-height: 1.6;
+  background: #fff;
+}
+h1 { border-bottom: 1px solid #d1d9e0; padding-bottom: 0.3em; }
+h2 { border-bottom: 1px solid #d1d9e0; padding-bottom: 0.3em; margin-top: 2em; }
+h3 { margin-top: 1.5em; }
+hr { border: none; border-top: 1px solid #d1d9e0; margin: 2em 0; }
+code {
+  background: #f0f3f6;
+  padding: 0.2em 0.4em;
+  border-radius: 6px;
+  font-size: 85%;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+}
+pre {
+  background: #f6f8fa;
+  border: 1px solid #d1d9e0;
+  border-radius: 6px;
+  padding: 16px;
+  overflow-x: auto;
+  line-height: 1.45;
+}
+pre code {
+  background: none;
+  padding: 0;
+  font-size: 85%;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1em 0;
+}
+th, td {
+  border: 1px solid #d1d9e0;
+  padding: 8px 13px;
+  text-align: left;
+}
+th { background: #f6f8fa; font-weight: 600; }
+tr:nth-child(even) { background: #f6f8fa; }
+a { color: #0969da; text-decoration: none; }
+a:hover { text-decoration: underline; }
+details { margin: 1em 0; }
+summary { cursor: pointer; font-weight: 600; color: #0969da; }
+li { margin: 0.25em 0; }
+strong { font-weight: 600; }
+.pass { color: #1a7f37; font-weight: 600; }
+.fail { color: #cf222e; font-weight: 600; }
+</style>
+</head>
+<body>
+<h1 id="fleet-issue-fix-validation-report">Fleet Issue Fix Validation Report</h1>
+
+<p><strong>Generated</strong>: 2026-02-17</p>
+<p><strong>Branches validated</strong>: 4</p>
+<p><strong>Total tests</strong>: 47 (all passing)</p>
+
+<hr>
+
+<h2 id="table-of-contents">Table of Contents</h2>
+
+<ol>
+<li><a href="#39613--browser-tab-title-shows-software-on-host-software-page">#39613 — Browser tab title shows "Software" on host software page</a></li>
+<ol>
+<li><a href="#39745--add-cpe-translation-for-microsoftwindowsnotepad">#39745 — Add CPE translation for Microsoft.WindowsNotepad</a></li>
+<ol>
+<li><a href="#39245--serialize-self-service-install-requests">#39245 — Serialize self-service install requests</a></li>
+<ol>
+<li><a href="#39921--scope-declaration-processing-to-affected-hosts">#39921 — Scope declaration processing to affected hosts</a></li>
+</ol>
+
+<hr>
+
+<h2 id="39613--browser-tab-title-shows-software-on-host-software-page">#39613 — Browser tab title shows "Software" on host software page</h2>
+
+<p><strong>Branch</strong>: <code>fix/39613-host-software-tab-title</code></p>
+<p><strong>File changed</strong>: <code>frontend/components/App/App.tsx</code></p>
+<p><strong>Validation</strong>: <code>frontend/components/App/App.validation.tests.tsx</code> (19 Jest tests)</p>
+
+<h3 id="problem">Problem</h3>
+
+<p>When viewing a host's software tab (e.g., <code>/hosts/123/software/inventory</code>), the</p>
+<p>browser tab title incorrectly displayed "Software | Fleet" instead of the</p>
+<p>host-specific title. This happened because <code>page_titles.find()</code> used</p>
+<p><code>pathname.includes(item.path)</code>, which matched <code>/software</code> as a substring inside</p>
+<p><code>/hosts/123/software/inventory</code>.</p>
+
+<h3 id="fix">Fix</h3>
+
+<p>Changed <code>includes</code> to <code>startsWith</code> in <code>App.tsx</code> line ~230:</p>
+
+<pre><code class="language-typescript">
+// Before (buggy):
+const curTitle = page_titles.find((item) =&gt;
+  location?.pathname.includes(item.path)
+);
+
+// After (fixed):
+const curTitle = page_titles.find((item) =&gt;
+  location?.pathname.startsWith(item.path)
+);
+</code></pre>
+
+<h3 id="test-results">Test Results</h3>
+
+<pre><code>
+PASS frontend/components/App/App.validation.tests.tsx (19 tests)
+
+  bug scenario: host software tab should NOT match top-level Software title
+    ✓ does NOT set title to &#x27;Software&#x27; for /hosts/123/software/inventory
+    ✓ does NOT set title to &#x27;Software&#x27; for /hosts/456/software
+    ✓ does NOT set title to &#x27;Software&#x27; for /hosts/789/software/library
+
+  confirms the old buggy logic WOULD have matched incorrectly
+    ✓ old includes() logic incorrectly matches /hosts/123/software/inventory to Software
+
+  fix works: top-level /software paths SHOULD match Software title
+    ✓ sets title to &#x27;Software&#x27; for /software/titles
+    ✓ sets title to &#x27;Software&#x27; for /software/os
+    ✓ sets title to &#x27;Software&#x27; for /software/versions
+    ✓ sets title to &#x27;Software&#x27; for /software/vulnerabilities
+    ✓ sets title to &#x27;Software&#x27; for /software
+
+  other paths still work correctly
+    ✓ sets title to &#x27;Hosts&#x27; for /hosts/manage
+    ✓ sets title to &#x27;Dashboard&#x27; for /dashboard
+    ✓ sets title to &#x27;Queries&#x27; for /queries/manage
+    ✓ sets title to &#x27;Policies&#x27; for /policies/manage
+    ✓ sets title to &#x27;Settings&#x27; for /settings
+    ✓ sets title to &#x27;Controls&#x27; for /controls
+    ✓ sets title to &#x27;New query&#x27; for /queries/new
+    ✓ sets title to &#x27;New policy&#x27; for /policies/new
+
+  host detail paths do not incorrectly match other top-level titles
+    ✓ /hosts/1/queries does not match &#x27;Queries&#x27; title
+    ✓ /hosts/1/policies does not match &#x27;Policies&#x27; title
+
+Tests: 19 passed, 19 total
+</code></pre>
+
+<h3 id="key-validation-points">Key Validation Points</h3>
+
+<table><thead><tr>
+<th>Scenario</th>
+<th>Old behavior (<code>includes</code>)</th>
+<th>New behavior (<code>startsWith</code>)</th>
+</tr></thead><tbody>
+<tr>
+<td><code>/hosts/123/software/inventory</code></td>
+<td>Incorrectly matches "Software" title</td>
+<td>No match (correct)</td>
+</tr>
+<tr>
+<td><code>/software/titles</code></td>
+<td>Matches "Software" title</td>
+<td>Matches "Software" title</td>
+</tr>
+<tr>
+<td><code>/hosts/1/queries</code></td>
+<td>Would match "Queries" title</td>
+<td>No match (correct)</td>
+</tr>
+</tbody></table>
+
+<hr>
+
+<h2 id="39745--add-cpe-translation-for-microsoftwindowsnotepad">#39745 — Add CPE translation for Microsoft.WindowsNotepad</h2>
+
+<p><strong>Branch</strong>: <code>fix/39745-notepad-cpe</code></p>
+<p><strong>Files changed</strong>: <code>server/vulnerabilities/nvd/cpe_translations.json</code>, <code>server/vulnerabilities/nvd/cpe_translations_test.go</code></p>
+<p><strong>Validation</strong>: <code>tools/validate/validate_39745.sh</code> (6 Go subtests)</p>
+
+<h3 id="problem">Problem</h3>
+
+<p>The Windows program <code>Microsoft.WindowsNotepad</code> (Windows Notepad distributed via</p>
+<p>the Microsoft Store / MSIX) had no CPE mapping in Fleet's translation table.</p>
+<p>This meant Fleet could not match it to known NVD CPE entries and therefore</p>
+<p>missed vulnerabilities reported against</p>
+<p><code>cpe:2.3:a:microsoft:window_notepad:*</code> and</p>
+<p><code>cpe:2.3:a:microsoft:windows_notepad:*</code>.</p>
+
+<h3 id="fix">Fix</h3>
+
+<p>Added a new entry to <code>server/vulnerabilities/nvd/cpe_translations.json</code>:</p>
+
+<pre><code class="language-json">
+{
+  &quot;software&quot;: {
+    &quot;name&quot;: [&quot;Microsoft.WindowsNotepad&quot;],
+    &quot;source&quot;: [&quot;programs&quot;]
+  },
+  &quot;filter&quot;: {
+    &quot;product&quot;: [&quot;window_notepad&quot;, &quot;windows_notepad&quot;],
+    &quot;vendor&quot;: [&quot;microsoft&quot;]
+  }
+}
+</code></pre>
+
+<p>This maps <code>Microsoft.WindowsNotepad</code> (source: <code>programs</code>) to the Microsoft</p>
+<p>vendor with both known NVD product names (<code>window_notepad</code> and</p>
+<p><code>windows_notepad</code>).</p>
+
+<p>A corresponding test case was added to</p>
+<p><code>server/vulnerabilities/nvd/cpe_translations_test.go</code>.</p>
+
+<h3 id="test-results">Test Results</h3>
+
+<table><thead><tr>
+<th>Metric</th>
+<th>Value</th>
+</tr></thead><tbody>
+<tr>
+<td>Total TestTranslate subtests</td>
+<td>6 (was 5 before this fix)</td>
+</tr>
+<tr>
+<td>Passed</td>
+<td>6</td>
+</tr>
+<tr>
+<td>Failed</td>
+<td>0</td>
+</tr>
+<tr>
+<td>New subtest (<code>match_Microsoft.WindowsNotepad</code>)</td>
+<td><strong>PASS</strong></td>
+</tr>
+<tr>
+<td>Overall result</td>
+<td><strong>PASS</strong></td>
+</tr>
+</tbody></table>
+
+<details>
+<summary>Full test output</summary>
+
+<pre><code>
+=== RUN   TestTranslate
+=== RUN   TestTranslate/no_match
+=== RUN   TestTranslate/match_on_name_and_source
+=== RUN   TestTranslate/match_on_bundle_identifier
+=== RUN   TestTranslate/match_with_regex
+=== RUN   TestTranslate/match_with_regex_not_matching
+=== RUN   TestTranslate/match_Microsoft.WindowsNotepad
+--- PASS: TestTranslate (0.00s)
+    --- PASS: TestTranslate/no_match (0.00s)
+    --- PASS: TestTranslate/match_on_name_and_source (0.00s)
+    --- PASS: TestTranslate/match_on_bundle_identifier (0.00s)
+    --- PASS: TestTranslate/match_with_regex (0.00s)
+    --- PASS: TestTranslate/match_with_regex_not_matching (0.00s)
+    --- PASS: TestTranslate/match_Microsoft.WindowsNotepad (0.00s)
+PASS
+ok  	github.com/fleetdm/fleet/v4/server/vulnerabilities/nvd	0.697s
+</code></pre>
+
+</details>
+
+<hr>
+
+<h2 id="39245--serialize-self-service-install-requests">#39245 — Serialize self-service install requests</h2>
+
+<p><strong>Branch</strong>: <code>fix/39245-rapid-install-requests</code></p>
+<p><strong>File changed</strong>: <code>frontend/pages/hosts/details/cards/Software/SelfService/SelfService.tsx</code></p>
+<p><strong>Validation</strong>: <code>SelfService.validation.tests.tsx</code> (12 Jest tests)</p>
+
+<h3 id="problem">Problem</h3>
+
+<p>When a user rapidly taps "Install" on multiple VPP apps in the self-service</p>
+<p>portal, each tap independently fires <code>deviceApi.installSelfServiceSoftware</code>.</p>
+<p>The concurrent API calls hit Apple's VPP endpoint at the same time and some</p>
+<p>return false "host offline" errors due to VPP API contention.</p>
+
+<h3 id="fix">Fix</h3>
+
+<p><code>SelfService.tsx</code> now uses a queue (<code>installQueueRef</code>) guarded by a processing</p>
+<p>flag (<code>isProcessingInstallRef</code>). <code>onClickInstallAction</code> pushes items onto the</p>
+<p>queue and calls <code>processInstallQueue</code>, which drains the queue one item at a time</p>
+<p>(serial <code>await</code>). <code>onInstallOrUninstall</code> (the polling refetch) is only called</p>
+<p>once after the entire queue is drained.</p>
+
+<h3 id="test-results">Test Results</h3>
+
+<pre><code>
+PASS SelfService.validation.tests.tsx (12 tests)
+
+  BEFORE fix: concurrent handler (the bug)
+    ✓ fires all API calls concurrently when Install is tapped rapidly (103 ms)
+
+  AFTER fix: serialized queue handler
+    ✓ processes install requests one at a time (sequentially) (251 ms)
+    ✓ calls the API in the correct order (FIFO) (193 ms)
+    ✓ ensures each call starts after the previous one finishes (no overlap) (222 ms)
+    ✓ still works correctly for a single install (no queue needed) (74 ms)
+    ✓ handles API errors without stopping the queue (202 ms)
+    ✓ can process a second batch after the first batch drains (283 ms)
+
+  side-by-side: concurrent vs. serialized
+    ✓ concurrent handler has higher peak concurrency than serialized handler (355 ms)
+
+  unmount cleanup: queue cleared mid-processing
+    ✓ stops processing remaining items when the queue is cleared (482 ms)
+
+  duplicate softwareId handling
+    ✓ processes all queued items even with same softwareId (no dedup) (161 ms)
+    ✓ processes duplicates interspersed with other ids in correct FIFO order (177 ms)
+
+  large batch stress test
+    ✓ processes 20 queued items serially in FIFO order with 1 final callback (401 ms)
+
+Tests: 12 passed, 12 total
+</code></pre>
+
+<h3 id="key-validation-points">Key Validation Points</h3>
+
+<table><thead><tr>
+<th>Metric</th>
+<th>Before (bug)</th>
+<th>After (fix)</th>
+</tr></thead><tbody>
+<tr>
+<td>Peak concurrent API calls</td>
+<td>3</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Polling refetch calls</td>
+<td>3 (per tap)</td>
+<td>1 (per batch)</td>
+</tr>
+<tr>
+<td>Request ordering</td>
+<td>Uncontrolled</td>
+<td>FIFO guaranteed</td>
+</tr>
+<tr>
+<td>Error resilience</td>
+<td>N/A (independent)</td>
+<td>Queue continues on error</td>
+</tr>
+<tr>
+<td>Time overlap between calls</td>
+<td>Yes (all start together)</td>
+<td>No (serial execution)</td>
+</tr>
+<tr>
+<td>Unmount safety</td>
+<td>Calls keep firing</td>
+<td>Queue cleared, processing stops</td>
+</tr>
+<tr>
+<td>Duplicate softwareId</td>
+<td>Independent calls</td>
+<td>All processed, no dedup (expected)</td>
+</tr>
+<tr>
+<td>20-item batch</td>
+<td>20 concurrent calls</td>
+<td>Serial FIFO, 1 callback at end</td>
+</tr>
+</tbody></table>
+
+<hr>
+
+<h2 id="39921--scope-declaration-processing-to-affected-hosts">#39921 — Scope declaration processing to affected hosts</h2>
+
+<p><strong>Branch</strong>: <code>fix/39921-teams-spec-perf</code></p>
+<p><strong>Files changed</strong>: <code>server/datastore/mysql/mdm.go</code>, <code>server/datastore/mysql/apple_mdm.go</code></p>
+<p><strong>Validation</strong>: <code>tools/validate/validate_39921.sh</code> (3 Go test suites) + <code>apple_mdm_bench_test.go</code> (6 scoping tests + benchmark)</p>
+
+<h3 id="problem">Problem</h3>
+
+<p>When <code>BulkSetPendingMDMHostProfiles</code> was called (e.g., after applying a team</p>
+<p>spec via <code>POST /api/latest/fleet/spec/teams</code>), the declaration processing step</p>
+<p>(<code>mdmAppleBatchSetHostDeclarationStateDB</code>) computed the desired declaration</p>
+<p>state for <strong>ALL enrolled hosts</strong>, regardless of which hosts were actually</p>
+<p>affected by the change.</p>
+
+<p><strong>Before</strong>: <code>mdmAppleBatchSetHostDeclarationStateDB</code> always computed desired</p>
+<p>state for ALL hosts. With 70k hosts and 30 declarations, this generated a</p>
+<p>massive 4-way UNION query joining every host against every declaration, causing</p>
+<p>severe performance degradation (50+ second API responses).</p>
+
+<h3 id="fix">Fix</h3>
+
+<p><strong>After</strong>: When called from <code>BulkSetPendingMDMHostProfiles</code>, declarations are</p>
+<p>scoped to only the affected hosts (those belonging to the modified team). The</p>
+<p>cron job (<code>MDMAppleBatchSetHostDeclarationState</code>) continues to process all hosts.</p>
+
+<h4 id="changes">Changes</h4>
+
+<ol>
+<li><strong><code>server/datastore/mysql/mdm.go</code></strong>: - Collect declaration UUIDs from profile UUIDs passed to the function. - Add a new <code>case hasAppleDecls:</code> block that looks up host UUIDs associated with the changed declarations (via team membership and existing assignments). - Remove the <code>!hasAppleDecls</code> guard so the host UUID lookup runs for declarations just like it does for profiles. - Pass the scoped <code>appleHosts</code> list into <code>mdmAppleBatchSetHostDeclarationStateDB</code>.</li>
+</ol>
+
+<ol>
+<li><strong><code>server/datastore/mysql/apple_mdm.go</code></strong>: - Add <code>hostUUIDs []string</code> parameter to <code>mdmAppleBatchSetHostDeclarationStateDB</code>. - Add <code>hostUUIDs []string</code> parameter to <code>mdmAppleGetHostsWithChangedDeclarationsDB</code>. - When <code>hostUUIDs</code> is non-empty, use batched host-filtered queries (<code>generateEntitiesToInstallQueryWithDesiredState</code> and <code>generateEntitiesToRemoveQueryWithDesiredState</code>) that include <code>h.uuid IN (?)</code> conditions, avoiding a full table scan. - When <code>hostUUIDs</code> is empty (cron path), fall through to the original <code>mdmAppleGetAllHostsWithChangedDeclarationsDB</code> that processes all hosts.</li>
+</ol>
+
+<h3 id="test-results">Test Results</h3>
+
+<table><thead><tr>
+<th>Status</th>
+<th>Test Suite</th>
+<th>Duration</th>
+</tr></thead><tbody>
+<tr>
+<td><span class="pass">PASS</span></td>
+<td>BulkSetPendingMDMHostProfiles (all variants)</td>
+<td>35.2s</td>
+</tr>
+<tr>
+<td><span class="pass">PASS</span></td>
+<td>MDMAppleBatchSetHostDeclarationState (DDM)</td>
+<td>9.3s</td>
+</tr>
+<tr>
+<td><span class="pass">PASS</span></td>
+<td>MDMAppleDDMDeclarationsToken</td>
+<td>11.9s</td>
+</tr>
+</tbody></table>
+
+<p><strong>All 3 test suites passed.</strong></p>
+
+<h3 id="scoping-contract-tests-testscopeddeclarationprocessing">Scoping Contract Tests (<code>TestScopedDeclarationProcessing</code>)</h3>
+
+<p>In addition to the existing integration tests, 6 targeted sub-tests explicitly</p>
+<p>prove the scoping contract:</p>
+
+<pre><code>
+--- PASS: TestScopedDeclarationProcessing (8.38s)
+    --- PASS: TestScopedDeclarationProcessing/ScopedToTeamA (0.04s)
+    --- PASS: TestScopedDeclarationProcessing/ScopedToTeamB (0.03s)
+    --- PASS: TestScopedDeclarationProcessing/Unscoped (0.03s)
+    --- PASS: TestScopedDeclarationProcessing/EmptySlice (0.03s)
+    --- PASS: TestScopedDeclarationProcessing/ScopedDeclarationCount (0.03s)
+    --- PASS: TestScopedDeclarationProcessing/BatchSetWithScope (0.07s)
+</code></pre>
+
+<table><thead><tr>
+<th>Sub-test</th>
+<th>What it proves</th>
+</tr></thead><tbody>
+<tr>
+<td><code>ScopedToTeamA</code></td>
+<td>Passing team A host UUIDs returns ONLY team A hosts</td>
+</tr>
+<tr>
+<td><code>ScopedToTeamB</code></td>
+<td>Passing team B host UUIDs returns ONLY team B hosts</td>
+</tr>
+<tr>
+<td><code>Unscoped</code></td>
+<td>Passing <code>nil</code> returns hosts from BOTH teams (cron behavior)</td>
+</tr>
+<tr>
+<td><code>EmptySlice</code></td>
+<td>Empty slice behaves like <code>nil</code> (all hosts)</td>
+</tr>
+<tr>
+<td><code>ScopedDeclarationCount</code></td>
+<td>Each scoped host has exactly the expected number of declarations</td>
+</tr>
+<tr>
+<td><code>BatchSetWithScope</code></td>
+<td>End-to-end: scoped batch set creates pending declarations only for scoped hosts; other team hosts have zero</td>
+</tr>
+</tbody></table>
+
+<h3 id="full-scale-reproduction-testreproduceissue39921">Full-Scale Reproduction (<code>TestReproduceIssue39921</code>)</h3>
+
+<p>Reproduces the <strong>exact scenario</strong> from issue #39921:</p>
+<ul>
+<li>70,000 hosts across 50 teams (1,400 hosts per team)</li>
+<li>30 declarations per team (1,500 total)</li>
+<li>One team modified via GitOps (<code>POST /api/latest/fleet/spec/teams</code>)</li>
+<li>Reported: 107 second API response time</li>
+</ul>
+
+<pre><code>
+╔══════════════════════════════════════════════════════════════════════════╗
+║  REPRODUCTION OF ISSUE #39921                                          ║
+║  &#x27;POST /api/latest/fleet/spec/teams taking ~107s with ~70k hosts&#x27;      ║
+╠══════════════════════════════════════════════════════════════════════════╣
+║  Setup: 70000 hosts, 50 teams, 30 decls/team (1500 total)
+╠══════════════════════════════════════════════════════════════════════════╣
+║  SCOPED   (fix)  :   1400 hosts → 5.874s
+║  UNSCOPED (bug)  :  70000 hosts → 4m31.959s  (reported: ~107s)
+║  Speedup         : 46.3x
+╚══════════════════════════════════════════════════════════════════════════╝
+</code></pre>
+
+<p>The unscoped (buggy) path took <strong>4m32s</strong> on a local MySQL instance — same</p>
+<p>order of magnitude as the reported 107s on production infrastructure (the</p>
+<p>difference is due to local MySQL vs production hardware/tuning). The scoped</p>
+<p>(fixed) path completes in <strong>5.9s</strong> for the target team's 1,400 hosts, a</p>
+<p><strong>46.3x speedup</strong>.</p>
+
+<h3 id="key-validation-points">Key Validation Points</h3>
+
+<table><thead><tr>
+<th>Scenario</th>
+<th>Before</th>
+<th>After</th>
+</tr></thead><tbody>
+<tr>
+<td>Declaration desired-state query scope</td>
+<td>ALL hosts</td>
+<td>Only affected hosts</td>
+</tr>
+<tr>
+<td>Host UUID lookup for declarations</td>
+<td>Skipped entirely</td>
+<td>Runs via team + assignment JOIN</td>
+</tr>
+<tr>
+<td>Cron job behavior</td>
+<td>Processes all hosts</td>
+<td>Unchanged (passes <code>nil</code>)</td>
+</tr>
+<tr>
+<td>API endpoint behavior</td>
+<td>Processes all hosts (slow)</td>
+<td>Scoped to team hosts (fast)</td>
+</tr>
+<tr>
+<td>Estimated query rows (70k hosts, 30 decls)</td>
+<td>~2.1M rows</td>
+<td>~hundreds of rows</td>
+</tr>
+</tbody></table>
+
+</body>
+</html>

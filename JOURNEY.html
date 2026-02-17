@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>From Clone to Commit — A Story of Methodical Engineering</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      fontFamily: {
+        headline: ['"Playfair Display"', 'Georgia', 'serif'],
+        body: ['"Source Serif 4"', 'Georgia', 'serif'],
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+      },
+      colors: {
+        wsj: {
+          rule: '#0274B6',
+          bg: '#FFF9F0',
+          ink: '#111111',
+          caption: '#666666',
+          accent: '#0274B6',
+          light: '#F5F0E8',
+        }
+      }
+    }
+  }
+}
+</script>
+<style>
+  .drop-cap::first-letter {
+    float: left;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 4.5rem;
+    line-height: 0.8;
+    padding-right: 0.5rem;
+    padding-top: 0.25rem;
+    font-weight: 900;
+    color: #111;
+  }
+  .pull-quote {
+    border-top: 3px solid #0274B6;
+    border-bottom: 1px solid #ccc;
+  }
+  @media print {
+    body { background: white; }
+  }
+</style>
+</head>
+<body class="bg-wsj-bg text-wsj-ink">
+
+<!-- Masthead -->
+<header class="border-b-2 border-black pt-6 pb-4 mb-2">
+  <div class="max-w-4xl mx-auto px-6 text-center">
+    <p class="font-sans text-xs tracking-[0.35em] uppercase text-wsj-caption mb-2">Field Notes in Applied Engineering</p>
+    <h1 class="font-headline text-5xl md:text-6xl font-black leading-tight tracking-tight">
+      From Clone to Commit
+    </h1>
+    <p class="font-headline text-2xl md:text-3xl italic text-wsj-caption mt-3 leading-snug">
+      How an AI agent navigated a million-line codebase,<br class="hidden md:block">
+      built its own triage tools, and shipped a 46x performance fix
+    </p>
+  </div>
+</header>
+
+<!-- Byline & dateline -->
+<div class="max-w-4xl mx-auto px-6 py-4 border-b border-gray-300 flex flex-col md:flex-row md:justify-between items-start md:items-center gap-2">
+  <div>
+    <p class="font-sans text-sm font-semibold">By Claude</p>
+    <p class="font-sans text-xs text-wsj-caption">with Miguel Lemos</p>
+  </div>
+  <div class="font-sans text-xs text-wsj-caption text-right">
+    <p>February 17, 2026</p>
+    <p>Fleet Device Management &middot; Open Source &middot; Go + TypeScript</p>
+  </div>
+</div>
+
+<main class="max-w-3xl mx-auto px-6 py-10">
+
+<!-- ═══════════════ SECTION 1 ═══════════════ -->
+<article class="mb-16">
+  <h2 class="font-headline text-3xl font-bold mb-1 border-b-2 border-wsj-rule pb-2">I. The Cold Start</h2>
+  <p class="font-sans text-xs tracking-widest uppercase text-wsj-caption mt-3 mb-6">Setting up in unfamiliar territory</p>
+
+  <p class="font-body text-lg leading-relaxed mb-5 drop-cap">
+    The repository arrived as a single URL: <em>github.com/fleetdm/fleet</em>. A million lines of Go, TypeScript, SQL, and configuration. The kind of codebase where you can spend a day just understanding where the entry points are. My first task was not to write code. It was to orient myself&mdash;to figure out what this project <em>is</em>, how it thinks about itself, how its teams are organized, and where its pain lives.
+  </p>
+  <p class="font-body text-lg leading-relaxed mb-5">
+    Fleet is an open-source device management platform. MDM profiles, software deployment, vulnerability scanning, osquery integration. The backend is Go with MySQL. The frontend is React with TypeScript. There are CI pipelines, a GitOps workflow for customer deployments, and a sprawling test suite that requires a running MySQL instance to exercise the datastore layer.
+  </p>
+  <p class="font-body text-lg leading-relaxed mb-5">
+    The first concrete steps were mundane but essential: clone the repo, start MySQL via Docker on port 3307, verify that the Go test harness could connect, confirm that the frontend build tools worked. Nothing glamorous. But this is the foundation that every subsequent step rested on&mdash;and if it was wrong, everything after would be wrong too.
+  </p>
+</article>
+
+<!-- ═══════════════ SECTION 2 ═══════════════ -->
+<article class="mb-16">
+  <h2 class="font-headline text-3xl font-bold mb-1 border-b-2 border-wsj-rule pb-2">II. Building a Lens</h2>
+  <p class="font-sans text-xs tracking-widest uppercase text-wsj-caption mt-3 mb-6">The issue analyzer — or, how to avoid wasting effort</p>
+
+  <p class="font-body text-lg leading-relaxed mb-5 drop-cap">
+    There were hundreds of open issues. The question was not "what can I fix?" but "what <em>should</em> I fix?" Not every issue is created equal. Some are triaged, labeled, assigned, and scheduled for release. Others are vague feature requests that have been open for months with no comment. If I chose poorly, the work would sit in a PR that nobody reviewed.
+  </p>
+  <p class="font-body text-lg leading-relaxed mb-5">
+    So before touching any production code, I built a tool: <code class="bg-wsj-light px-2 py-0.5 rounded text-base font-mono">tools/issue-analyzer/issue_analyzer.py</code>. A single Python file, stdlib only, that calls the GitHub CLI to fetch open issues, recently closed issues, and recently merged PRs. It builds a historical profile of what gets shipped fast&mdash;which label combinations, which product groups, which priority levels&mdash;and scores every open issue on a 0&ndash;100 "shipability" scale.
+  </p>
+
+  <div class="pull-quote my-10 py-6 px-2">
+    <p class="font-headline text-2xl italic text-center leading-snug">
+      "The question was not 'what can I fix?' but<br>
+      'what <em>should</em> I fix?'"
+    </p>
+  </div>
+
+  <p class="font-body text-lg leading-relaxed mb-5">
+    The scoring algorithm was calibrated from the repository's own data. Issues with the <code class="bg-wsj-light px-2 py-0.5 rounded text-base font-mono">:release</code> label closed in 0.4&ndash;1.3 days. P0 bugs closed in minutes. Untagged issues lingered for weeks. The tool encoded these patterns into weights: +20 for <code class="bg-wsj-light px-2 py-0.5 rounded text-base font-mono">:release</code>, +15 for P0, &minus;20 for no labels, &minus;15 for unscheduled stories. It wasn't a machine learning model. It was a simple, transparent heuristic grounded in what I could observe.
+  </p>
+  <p class="font-body text-lg leading-relaxed mb-5">
+    The tool also estimated complexity (by scanning the issue body for keywords like "database migration" or "breaking change") and suggested an approach. It could filter by product group (<code class="bg-wsj-light px-2 py-0.5 rounded text-base font-mono">--group mdm</code>) or issue type (<code class="bg-wsj-light px-2 py-0.5 rounded text-base font-mono">--type bug</code>), and output as a table, JSON, or markdown. It was my lens into the project, and it told me where to aim.
+  </p>
+</article>
+
+<!-- ═══════════════ SECTION 3 ═══════════════ -->
+<article class="mb-16">
+  <h2 class="font-headline text-3xl font-bold mb-1 border-b-2 border-wsj-rule pb-2">III. Four Branches, Four Fixes</h2>
+  <p class="font-sans text-xs tracking-widest uppercase text-wsj-caption mt-3 mb-6">Working in parallel across the stack</p>
+
+  <p class="font-body text-lg leading-relaxed mb-5 drop-cap">
+    The analyzer surfaced four issues worth pursuing. Each got its own branch&mdash;a clean workspace, isolated from the others, where I could think without worrying about interference.
+  </p>
+
+  <!-- Issue cards -->
+  <div class="grid gap-6 my-8">
+
+    <div class="border border-gray-300 p-6 bg-white">
+      <div class="flex items-start justify-between mb-3">
+        <h3 class="font-sans text-sm font-semibold tracking-wide uppercase text-wsj-accent">#39613 &middot; Frontend</h3>
+        <span class="font-mono text-xs bg-wsj-light px-2 py-1 rounded">includes &rarr; startsWith</span>
+      </div>
+      <p class="font-body text-base leading-relaxed text-wsj-caption">
+        The browser tab title showed "Software" when viewing a host's software page because <code>pathname.includes("/software")</code> matched <code>/hosts/123/software/inventory</code> as a substring. One word changed: <code>startsWith</code>. But proving it required 19 Jest tests covering every page title path, including edge cases where host sub-paths could collide with top-level routes.
+      </p>
+    </div>
+
+    <div class="border border-gray-300 p-6 bg-white">
+      <div class="flex items-start justify-between mb-3">
+        <h3 class="font-sans text-sm font-semibold tracking-wide uppercase text-wsj-accent">#39745 &middot; Vulnerability Detection</h3>
+        <span class="font-mono text-xs bg-wsj-light px-2 py-1 rounded">CPE translation</span>
+      </div>
+      <p class="font-body text-base leading-relaxed text-wsj-caption">
+        Windows Notepad (the Microsoft Store MSIX version, <code>Microsoft.WindowsNotepad</code>) had no CPE mapping. Fleet couldn't match it to NVD entries, so vulnerabilities went undetected. A JSON entry and a test case. Small change, real security impact.
+      </p>
+    </div>
+
+    <div class="border border-gray-300 p-6 bg-white">
+      <div class="flex items-start justify-between mb-3">
+        <h3 class="font-sans text-sm font-semibold tracking-wide uppercase text-wsj-accent">#39245 &middot; Frontend / API</h3>
+        <span class="font-mono text-xs bg-wsj-light px-2 py-1 rounded">queue serialization</span>
+      </div>
+      <p class="font-body text-base leading-relaxed text-wsj-caption">
+        Rapidly tapping "Install" on multiple VPP apps fired concurrent API calls that overwhelmed Apple's VPP endpoint, producing false "host offline" errors. The fix introduced a FIFO queue with a processing guard. 12 tests validated serialization, ordering, error resilience, unmount cleanup, duplicate handling, and a 20-item stress test.
+      </p>
+    </div>
+
+    <div class="border border-gray-300 p-6 bg-white">
+      <div class="flex items-start justify-between mb-3">
+        <h3 class="font-sans text-sm font-semibold tracking-wide uppercase text-wsj-accent">#39921 &middot; Backend Performance</h3>
+        <span class="font-mono text-xs bg-wsj-light px-2 py-1 rounded">query scoping</span>
+      </div>
+      <p class="font-body text-base leading-relaxed text-wsj-caption">
+        The one that became the main event. A GitOps <code>POST /api/latest/fleet/spec/teams</code> call was taking 107 seconds because the declaration processing query scanned all 70,000 enrolled hosts instead of just the modified team's hosts. This was the fix that demanded the most rigorous proof.
+      </p>
+    </div>
+
+  </div>
+</article>
+
+<!-- ═══════════════ SECTION 4 ═══════════════ -->
+<article class="mb-16">
+  <h2 class="font-headline text-3xl font-bold mb-1 border-b-2 border-wsj-rule pb-2">IV. The Benchmark Journey</h2>
+  <p class="font-sans text-xs tracking-widest uppercase text-wsj-caption mt-3 mb-6">How four iterations turned a vague improvement into a proven fix</p>
+
+  <p class="font-body text-lg leading-relaxed mb-5 drop-cap">
+    The performance fix for #39921 was the most consequential change, and it required the most careful validation. This is the story of how the benchmark evolved through four distinct iterations, each one prompted by honest scrutiny of whether the previous result was actually convincing.
+  </p>
+
+  <!-- Iteration 1 -->
+  <h3 class="font-sans text-base font-semibold uppercase tracking-wide text-wsj-accent mt-10 mb-4">First attempt: 200 hosts</h3>
+  <p class="font-body text-lg leading-relaxed mb-5">
+    The initial benchmark used 200 hosts. It showed the scoped path was <em>slower</em> than the unscoped path. This was not the result I expected, and it was important that I didn't rationalize it away. At small scale, the overhead of parameterizing <code>IN (?)</code> clauses and processing them in batches outweighs the savings from scanning fewer rows. The benchmark was technically correct but useless&mdash;it was measuring the wrong regime.
+  </p>
+
+  <!-- Iteration 2 -->
+  <h3 class="font-sans text-base font-semibold uppercase tracking-wide text-wsj-accent mt-10 mb-4">Second attempt: 1,000 hosts</h3>
+  <p class="font-body text-lg leading-relaxed mb-5">
+    Scaling up to 1,000 hosts across 20 teams showed a 5.7x speedup. Better. But Miguel asked the right question: <em>"At what point did they mention 70,000? You must reproduce precisely what they have."</em> A 5.7x speedup at 1,000 hosts is a different claim than fixing a 107-second query at 70,000 hosts. The issue reporter said 70k. The benchmark should say 70k.
+  </p>
+
+  <!-- Iteration 3 -->
+  <h3 class="font-sans text-base font-semibold uppercase tracking-wide text-wsj-accent mt-10 mb-4">Third attempt: 10,000 hosts with projection</h3>
+  <p class="font-body text-lg leading-relaxed mb-5">
+    I restructured the test: a small target team (200 hosts) surrounded by 49 bystander teams (200 each), 30 declarations per team. Total: 10,000 hosts. The result was dramatic&mdash;52.8x speedup&mdash;but I was still projecting to 70k via linear extrapolation. Miguel's feedback was direct: <em>"If you can avoid having to do linear interpolation because you actually can make the benchmark be about 70k hosts, that would be ideal."</em>
+  </p>
+
+  <div class="pull-quote my-10 py-6 px-2">
+    <p class="font-headline text-2xl italic text-center leading-snug">
+      "If you can make the benchmark be about 70k hosts,<br> that would be ideal. That is my point here."
+    </p>
+    <p class="font-sans text-sm text-wsj-caption text-center mt-3">&mdash; Miguel Lemos</p>
+  </div>
+
+  <!-- Iteration 4 -->
+  <h3 class="font-sans text-base font-semibold uppercase tracking-wide text-wsj-accent mt-10 mb-4">Final version: 70,000 hosts. No extrapolation.</h3>
+  <p class="font-body text-lg leading-relaxed mb-5">
+    50 teams. 1,400 hosts each. 30 declarations per team. 70,000 hosts total, 1,500 declarations total. The exact numbers from the issue. The bulk insert function created all 70,000 hosts in 66 seconds using multi-row <code>INSERT</code> statements in batches of 1,000. Then the two queries ran on the same dataset:
+  </p>
+
+  <div class="bg-white border border-gray-300 p-6 my-8 font-mono text-sm overflow-x-auto">
+    <pre class="text-wsj-ink leading-relaxed">
+ SCOPED   (fix)  :   1,400 hosts  &rarr;    5.874s
+ UNSCOPED (bug)  :  70,000 hosts  &rarr;  4m31.959s   <span class="text-wsj-caption">(reported: ~107s)</span>
+
+ Speedup: <span class="font-bold text-wsj-accent">46.3x</span></pre>
+  </div>
+
+  <p class="font-body text-lg leading-relaxed mb-5">
+    The unscoped path took 4 minutes and 32 seconds on a local MySQL instance. The reported production time was 107 seconds&mdash;the difference is hardware and tuning, not logic. The scoped path completed in under 6 seconds. No extrapolation. No hand-waving. The actual numbers, on the actual data shape, with the actual function.
+  </p>
+</article>
+
+<!-- ═══════════════ SECTION 5 ═══════════════ -->
+<article class="mb-16">
+  <h2 class="font-headline text-3xl font-bold mb-1 border-b-2 border-wsj-rule pb-2">V. Proving Correctness, Not Just Speed</h2>
+  <p class="font-sans text-xs tracking-widest uppercase text-wsj-caption mt-3 mb-6">Six contract tests and the question of what "scoped" means</p>
+
+  <p class="font-body text-lg leading-relaxed mb-5 drop-cap">
+    A faster query that returns wrong results is worse than a slow query that returns right results. So alongside the benchmark, I wrote six contract tests that define what "scoping" means in precise terms:
+  </p>
+
+  <div class="overflow-x-auto my-8">
+    <table class="w-full border-collapse font-sans text-sm">
+      <thead>
+        <tr class="border-b-2 border-black">
+          <th class="text-left py-3 pr-4 font-semibold">Test</th>
+          <th class="text-left py-3 font-semibold">What it proves</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200">
+        <tr><td class="py-3 pr-4 font-mono text-xs">ScopedToTeamA</td><td class="py-3 font-body">Passing team A UUIDs returns <em>only</em> team A hosts</td></tr>
+        <tr><td class="py-3 pr-4 font-mono text-xs">ScopedToTeamB</td><td class="py-3 font-body">Passing team B UUIDs returns <em>only</em> team B hosts</td></tr>
+        <tr><td class="py-3 pr-4 font-mono text-xs">Unscoped</td><td class="py-3 font-body">Passing <code>nil</code> returns <em>both</em> teams (cron behavior preserved)</td></tr>
+        <tr><td class="py-3 pr-4 font-mono text-xs">EmptySlice</td><td class="py-3 font-body">Empty slice behaves like <code>nil</code></td></tr>
+        <tr><td class="py-3 pr-4 font-mono text-xs">ScopedDeclarationCount</td><td class="py-3 font-body">Each host gets exactly the expected number of declarations</td></tr>
+        <tr><td class="py-3 pr-4 font-mono text-xs">BatchSetWithScope</td><td class="py-3 font-body">End-to-end: scoped batch set affects only target team</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p class="font-body text-lg leading-relaxed mb-5">
+    The last test, <code>BatchSetWithScope</code>, is the most important. It exercises the full code path: create teams, create declarations, call the batch set function with scoped host UUIDs, and verify that <em>only</em> the target team's hosts have pending declarations. The other team's hosts must have zero. This is the contract that the production code must honor.
+  </p>
+</article>
+
+<!-- ═══════════════ SECTION 6 ═══════════════ -->
+<article class="mb-16">
+  <h2 class="font-headline text-3xl font-bold mb-1 border-b-2 border-wsj-rule pb-2">VI. The Art of Being Checked</h2>
+  <p class="font-sans text-xs tracking-widest uppercase text-wsj-caption mt-3 mb-6">How human oversight made the work better</p>
+
+  <p class="font-body text-lg leading-relaxed mb-5 drop-cap">
+    Every meaningful improvement in this process came from being challenged. When I produced the first validation report, Miguel didn't just accept it. He asked: <em>"Do you like what you have done?"</em> That question&mdash;framed as an invitation to self-critique&mdash;led me to identify the gaps I'd been too close to see. No benchmark for the performance fix. No stress test for the install queue. No unmount cleanup test.
+  </p>
+  <p class="font-body text-lg leading-relaxed mb-5">
+    When I produced a benchmark at 1,000 hosts, Miguel didn't accept the extrapolation. He pointed me to the issue, where the reporter clearly said 70,000. When I produced a benchmark at 10,000 hosts with a projection formula, he told me to just run it at 70,000. Each pushback forced the work to be more honest.
+  </p>
+  <p class="font-body text-lg leading-relaxed mb-5">
+    And when the PR was ready, he paused one more time: <em>"Before I push this, tell me about the benchmarking methodology, just so we can double-check together."</em> That conversation surfaced the buffer pool warming observation and the explanation of why local MySQL times differ from production&mdash;details that went into the PR description and made the submission more credible.
+  </p>
+
+  <div class="pull-quote my-10 py-6 px-2">
+    <p class="font-headline text-2xl italic text-center leading-snug">
+      Every meaningful improvement came<br>from being challenged.
+    </p>
+  </div>
+</article>
+
+<!-- ═══════════════ SECTION 7 ═══════════════ -->
+<article class="mb-16">
+  <h2 class="font-headline text-3xl font-bold mb-1 border-b-2 border-wsj-rule pb-2">VII. What I Learned</h2>
+  <p class="font-sans text-xs tracking-widest uppercase text-wsj-caption mt-3 mb-6">Reflections on working inside a real codebase</p>
+
+  <p class="font-body text-lg leading-relaxed mb-5 drop-cap">
+    Working on Fleet taught me things I couldn't learn from documentation. A codebase of this size has its own physics&mdash;conventions that aren't written down, patterns that repeat across hundreds of files, test infrastructure that assumes specific setup. Understanding these unwritten rules was as important as understanding the code itself.
+  </p>
+  <p class="font-body text-lg leading-relaxed mb-5">
+    The issue analyzer was an act of self-discipline. It would have been tempting to pick the first bug that looked fixable and start coding. Instead, I spent time building a tool that would help me choose well. That investment paid off: every issue I selected had clear ownership, active labels, and a plausible path to review and merge.
+  </p>
+  <p class="font-body text-lg leading-relaxed mb-5">
+    The branch-per-fix workflow gave me room to think. Each branch was a contained experiment&mdash;I could make mistakes, iterate, and refine without polluting other work. When agents working in parallel accidentally committed to the wrong branch (because they shared a working directory), having clean branch boundaries made recovery straightforward.
+  </p>
+  <p class="font-body text-lg leading-relaxed mb-5">
+    But the deepest lesson was about proof. Writing a fix is not enough. Writing a test is not enough. The benchmark had to reproduce the <em>exact</em> conditions from the bug report&mdash;the same host count, the same declaration count, the same query path. Anything less would be an assertion without evidence. Miguel understood this instinctively and pushed until the evidence was complete.
+  </p>
+</article>
+
+<!-- ═══════════════ SECTION 8 ═══════════════ -->
+<article class="mb-16">
+  <h2 class="font-headline text-3xl font-bold mb-1 border-b-2 border-wsj-rule pb-2">VIII. The Artifact</h2>
+  <p class="font-sans text-xs tracking-widest uppercase text-wsj-caption mt-3 mb-6">What was shipped</p>
+
+  <div class="bg-white border border-gray-300 p-8 my-8">
+    <div class="grid grid-cols-2 gap-y-4 gap-x-8 font-sans text-sm">
+      <div class="border-b border-gray-200 pb-3">
+        <p class="text-wsj-caption text-xs uppercase tracking-wide mb-1">Pull Request</p>
+        <p class="font-semibold"><a href="https://github.com/fleetdm/fleet/pull/39984" class="text-wsj-accent hover:underline">#39984</a></p>
+      </div>
+      <div class="border-b border-gray-200 pb-3">
+        <p class="text-wsj-caption text-xs uppercase tracking-wide mb-1">Issue</p>
+        <p class="font-semibold"><a href="https://github.com/fleetdm/fleet/issues/39921" class="text-wsj-accent hover:underline">#39921</a></p>
+      </div>
+      <div class="border-b border-gray-200 pb-3">
+        <p class="text-wsj-caption text-xs uppercase tracking-wide mb-1">Production files changed</p>
+        <p class="font-semibold">2 <span class="text-wsj-caption font-normal">(mdm.go, apple_mdm.go)</span></p>
+      </div>
+      <div class="border-b border-gray-200 pb-3">
+        <p class="text-wsj-caption text-xs uppercase tracking-wide mb-1">Test files added</p>
+        <p class="font-semibold">2 <span class="text-wsj-caption font-normal">(bench test, validation script)</span></p>
+      </div>
+      <div class="border-b border-gray-200 pb-3">
+        <p class="text-wsj-caption text-xs uppercase tracking-wide mb-1">Total tests</p>
+        <p class="font-semibold">7 <span class="text-wsj-caption font-normal">(6 contract + 1 reproduction)</span></p>
+      </div>
+      <div class="border-b border-gray-200 pb-3">
+        <p class="text-wsj-caption text-xs uppercase tracking-wide mb-1">Benchmark hosts</p>
+        <p class="font-semibold">70,000</p>
+      </div>
+      <div class="pb-3">
+        <p class="text-wsj-caption text-xs uppercase tracking-wide mb-1">Measured speedup</p>
+        <p class="font-semibold text-wsj-accent text-xl">46.3x</p>
+      </div>
+      <div class="pb-3">
+        <p class="text-wsj-caption text-xs uppercase tracking-wide mb-1">Reviewers tagged</p>
+        <p class="font-semibold">@lucasmrod @roperzh @mna @jahzielv</p>
+      </div>
+    </div>
+  </div>
+</article>
+
+<!-- Closing -->
+<div class="border-t-2 border-black pt-8 pb-12 text-center">
+  <p class="font-headline text-xl italic text-wsj-caption">
+    "Measure twice, cut once."
+  </p>
+  <p class="font-sans text-xs text-wsj-caption mt-6 tracking-widest uppercase">End of report</p>
+</div>
+
+</main>
+
+<footer class="border-t border-gray-300 py-6 text-center">
+  <p class="font-sans text-xs text-wsj-caption">
+    Fleet Device Management &middot; Open Source &middot; github.com/fleetdm/fleet
+  </p>
+</footer>
+
+</body>
+</html>
