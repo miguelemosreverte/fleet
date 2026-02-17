@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fleet Contributions — Miguel Lemos</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      fontFamily: {
+        headline: ['"Playfair Display"', 'Georgia', 'serif'],
+        body: ['"Source Serif 4"', 'Georgia', 'serif'],
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+      },
+      colors: { wsj: { rule: '#0274B6', bg: '#FFF9F0', ink: '#111', caption: '#666', accent: '#0274B6', light: '#F5F0E8' } }
+    }
+  }
+}
+</script>
+</head>
+<body class="bg-wsj-bg text-wsj-ink min-h-screen">
+
+<header class="border-b-2 border-black pt-8 pb-6">
+  <div class="max-w-2xl mx-auto px-6 text-center">
+    <p class="font-sans text-xs tracking-[0.35em] uppercase text-wsj-caption mb-3">Fleet Device Management</p>
+    <h1 class="font-headline text-4xl md:text-5xl font-black">Contributions</h1>
+    <p class="font-body text-lg text-wsj-caption mt-3">Miguel Lemos &middot; February 2026</p>
+  </div>
+</header>
+
+<main class="max-w-2xl mx-auto px-6 py-12">
+  <div class="space-y-8">
+
+    <a href="JOURNEY.html" class="block border border-gray-300 bg-white p-8 hover:shadow-lg transition-shadow">
+      <p class="font-sans text-xs tracking-widest uppercase text-wsj-accent mb-2">Narrative</p>
+      <h2 class="font-headline text-2xl font-bold mb-3">From Clone to Commit</h2>
+      <p class="font-body text-base text-wsj-caption leading-relaxed">
+        The full story of navigating a million-line codebase, building triage tools,
+        fixing four issues across the stack, and proving a 46x performance improvement
+        with a 70,000-host benchmark.
+      </p>
+    </a>
+
+    <a href="VALIDATION_REPORT.html" class="block border border-gray-300 bg-white p-8 hover:shadow-lg transition-shadow">
+      <p class="font-sans text-xs tracking-widest uppercase text-wsj-accent mb-2">Technical Report</p>
+      <h2 class="font-headline text-2xl font-bold mb-3">Validation Report</h2>
+      <p class="font-body text-base text-wsj-caption leading-relaxed">
+        Test results and benchmark data for all four fix branches:
+        #39613 (tab title), #39745 (CPE mapping), #39245 (install queue),
+        #39921 (declaration scoping). 47 tests, all passing.
+      </p>
+    </a>
+
+    <div class="border-t border-gray-300 pt-8 mt-8">
+      <h3 class="font-sans text-sm font-semibold uppercase tracking-wide text-wsj-caption mb-4">Branches</h3>
+      <div class="grid gap-3 font-sans text-sm">
+        <a href="https://github.com/miguelemosreverte/fleet/tree/fix/39613-host-software-tab-title" class="flex justify-between items-center py-2 border-b border-gray-200 hover:text-wsj-accent">
+          <span class="font-mono text-xs">fix/39613-host-software-tab-title</span>
+          <span class="text-wsj-caption">Browser tab title</span>
+        </a>
+        <a href="https://github.com/miguelemosreverte/fleet/tree/fix/39745-notepad-cpe" class="flex justify-between items-center py-2 border-b border-gray-200 hover:text-wsj-accent">
+          <span class="font-mono text-xs">fix/39745-notepad-cpe</span>
+          <span class="text-wsj-caption">CPE translation</span>
+        </a>
+        <a href="https://github.com/miguelemosreverte/fleet/tree/fix/39245-rapid-install-requests" class="flex justify-between items-center py-2 border-b border-gray-200 hover:text-wsj-accent">
+          <span class="font-mono text-xs">fix/39245-rapid-install-requests</span>
+          <span class="text-wsj-caption">Install queue serialization</span>
+        </a>
+        <a href="https://github.com/miguelemosreverte/fleet/tree/fix/39921-teams-spec-perf" class="flex justify-between items-center py-2 border-b border-gray-200 hover:text-wsj-accent">
+          <span class="font-mono text-xs">fix/39921-teams-spec-perf</span>
+          <span class="text-wsj-caption">Declaration scoping (46.3x speedup)</span>
+        </a>
+        <a href="https://github.com/fleetdm/fleet/pull/39984" class="flex justify-between items-center py-2 hover:text-wsj-accent">
+          <span class="font-mono text-xs">PR #39984</span>
+          <span class="text-wsj-caption">Submitted to upstream &rarr;</span>
+        </a>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<footer class="border-t border-gray-300 py-6 text-center">
+  <p class="font-sans text-xs text-wsj-caption">
+    <a href="https://github.com/miguelemosreverte/fleet" class="hover:text-wsj-accent">github.com/miguelemosreverte/fleet</a>
+  </p>
+</footer>
+
+</body>
+</html>
